@@ -5,8 +5,19 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:FloatTextEdit"
         mc:Ignorable="d"
-        Title="MainWindow" Height="451" Width="800">
+        Title="FloatTextEdit" Height="451" Width="800" WindowStyle="None" AllowsTransparency="True" MouseLeave="Window_MouseLeave">
     <Grid>
-        
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="4*"/>
+            <ColumnDefinition Width="29*"/>
+        </Grid.ColumnDefinitions>
+        <RichTextBox x:Name="textEdit" Grid.ColumnSpan="2" UndoLimit="10000" FontFamily="Courier New" FontSize="14" RenderTransformOrigin="0.5,0.5" BorderBrush="{x:Null}" BorderThickness="0" Block.LineHeight="1">
+            <FlowDocument>
+                <Paragraph>
+                    <Run Text="エマ・ワトソン"/>
+                </Paragraph>
+            </FlowDocument>
+        </RichTextBox>
+
     </Grid>
 </Window>
