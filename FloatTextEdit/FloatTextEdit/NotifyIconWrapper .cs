@@ -22,8 +22,9 @@ namespace FloatTextEdit
             this.toolStripMenuItem_Exit.Click += this.toolStripMenuItem_Exit_Click;
             this.toolStripMenuItem_Position.Click += this.toolStripMenuItem_Position_Click;
             this.toolStripMenuItem_Load.Click += this.toolStripMenuItem_Load_Click;
+			this.toolStripMenuItem_Back.Click += this.toolStripMenuItem_Load_Back;
 
-            mainWindow = new MainWindow();
+			mainWindow = new MainWindow();
             mainWindow.Show();
         }
 
@@ -79,14 +80,24 @@ namespace FloatTextEdit
         /// <param name="e">イベントデータ</param>
         private void toolStripMenuItem_Load_Click(object sender, EventArgs e)
         {
-            mainWindow.Load();
-        }
+			string title = Microsoft.VisualBasic.Interaction.InputBox("FloatTextBox", "input title", "", -1, -1);
+            mainWindow.Load(title);
+		}
 
-        private void notifyIcon1_MouseUp(object sender, System.Windows.Forms.MouseEventArgs e)
+		/// <summary>
+		/// コンテキストメニュー "Back" を選択したとき呼ばれます。
+		/// </summary>
+		/// <param name="sender">呼び出し元オブジェクト</param>
+		/// <param name="e">イベントデータ</param>
+		private void toolStripMenuItem_Load_Back(object sender, EventArgs e) {
+			mainWindow.Back();
+		}
+
+		private void notifyIcon1_MouseUp(object sender, System.Windows.Forms.MouseEventArgs e)
         {
             if (e.Button != System.Windows.Forms.MouseButtons.Left) return;
 
             mainWindow.Show();
-        }
-    }
+		}
+	}
 }

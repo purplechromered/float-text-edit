@@ -10,11 +10,13 @@ namespace FloatTextEdit
 {
     class FWikipedia
     {
+		public string currentTitle;
         XDocument root;
 
         public List<string> LoadContent(string title)
         {
-            root = XDocument.Load(String.Format("http://ja.wikipedia.org/w/api.php?format=xml&action=query&prop=revisions&titles={0}&rvprop=content",
+			currentTitle = "";
+			root = XDocument.Load(String.Format("http://ja.wikipedia.org/w/api.php?format=xml&action=query&prop=revisions&titles={0}&rvprop=content",
               HttpUtility.UrlEncode(title)));
             XElement rev = root.Element("api").Element("query").Element("pages").Element("page").Element("revisions").Elements("rev").First();
             string text = rev.Value;
@@ -30,7 +32,8 @@ namespace FloatTextEdit
                 befEnd = m.Index + m.Length;
             }
             nodes.Add(text.Substring(befEnd, text.Length - befEnd));
-            return nodes;
+			currentTitle = title;
+			return nodes;
         }
     }
 }

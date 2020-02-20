@@ -22,12 +22,15 @@ namespace FloatTextEdit
     public partial class MainWindow : Window
     {
         FWikipedia wiki;
+		Stack<History> histories;
 
         public MainWindow()
         {
             InitializeComponent();
             wiki = new FWikipedia();
-        }
+			histories = new Stack<History>();
+
+		}
 
         private void TextEdit_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
@@ -64,47 +67,71 @@ namespace FloatTextEdit
             this.Hide();
         }
 
-        public void Load()
+        public bool Load(string reqTitle)
         {
-            string text = new TextRange(textEdit.Document.ContentStart, textEdit.Document.ContentEnd).Text.Trim();
-            if (text != "")
-            {
-                this.textEdit.Document.Blocks.Clear();
-                List<string> nodes = wiki.LoadContent(text);
-                Paragraph para = new Paragraph();
-                foreach (string node in nodes)
-                {
-                    if (node.StartsWith("[["))
-                    {
-                        Hyperlink link = new Hyperlink();
-                        link.IsEnabled = true;
-                        string nameAndKey = node.Substring(2, node.Length - 4);
-                        string[] sp = nameAndKey.Split(new string[] { "|" }, StringSplitOptions.None);
-                        if (sp.Length == 1)
-                        {
-                            link.Inlines.Add(sp[0]);
-                            link.NavigateUri = new Uri("http://a.a.a?" + sp[0]);
-                        } else
-                        {
-                            link.Inlines.Add(sp[0]);
-                            link.NavigateUri = new Uri("http://a.a.a?" + sp[1]);
-                        }
-                        link.MouseLeftButtonDown += (sender, args) =>
-                        {
-                            this.textEdit.Document.Blocks.Clear();
-                            string title = ((Hyperlink)sender).NavigateUri.Query.Substring(1);
-                            this.textEdit.AppendText(HttpUtility.UrlDecode(title));
-                            Load();
-                        };
-                        para.Inlines.Add(link);
-                    }
-                    else
-                    {
-                        para.Inlines.Add(new Run(node));
-                    }
-                }
-                textEdit.Document.Blocks.Add(para);
-            }
+			try {
+				List<string> nodes = wiki.LoadContent(reqTitle);
+				this.textEdit.Document.Blocks.Clear();
+
+				Paragraph para = new Paragraph();
+				foreach (string node in nodes) {
+					if (node.StartsWith("[[")) {
+						Hyperlink link = new Hyperlink();
+						link.IsEnabled = true;
+						string nameAndKey = node.Substring(2, node.Length - 4);
+						string[] sp = nameAndKey.Split(new string[] { "|" }, StringSplitOptions.None);
+						if (sp.Length == 1) {
+							link.Inlines.Add(sp[0]);
+							link.NavigateUri = new Uri("http://a.a.a?" + sp[0]);
+						}
+						else {
+							link.Inlines.Add(sp[0]);
+							link.NavigateUri = new Uri("http://a.a.a?" + sp[1]);
+						}
+						link.MouseLeftButtonDown += (sender, args) => {
+							histories.Push(new History() {
+								title = wiki.currentTitle,
+								pos = new TextRange(textEdit.Document.ContentStart, ((Hyperlink)sender).ContentStart).Text.Length
+							});
+
+							this.textEdit.Document.Blocks.Clear();
+							string title = ((Hyperlink)sender).NavigateUri.Query.Substring(1);
+							title = HttpUtility.UrlDecode(title);
+							Load(title);
+						};
+						para.Inlines.Add(link);
+					}
+					else {
+						para.Inlines.Add(new Run(node));
+					}
+				}
+				textEdit.Document.Blocks.Add(para);
+				textEdit.ScrollToHome();
+
+				return true;
+			}
+			catch (Exception e) {
+				MessageBox.Show("ERROR:" + e.Message);
+				return false;
+			}
         }
+
+		public void Back() {
+			if (histories.Count == 0) {
+				MessageBox.Show("Empty");
+				return;
+			}
+			History history = histories.Pop();
+			if (Load(history.title)) {
+				textEdit.CaretPosition = textEdit.Document.ContentStart.GetPositionAtOffset(history.pos);
+				textEdit.Selection.Select(textEdit.CaretPosition, textEdit.CaretPosition.GetPositionAtOffset(1));
+				textEdit.ScrollToVerticalOffset(textEdit.CaretPosition.GetCharacterRect(LogicalDirection.Backward).Y);
+			}
+		}
+
+		class History {
+			public String title;
+			public int pos;
+		}
     }
 }
